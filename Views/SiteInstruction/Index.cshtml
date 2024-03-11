@@ -1,0 +1,278 @@
+﻿@model PaginatedResult<SiteInstruction>
+@{
+    ViewBag.Title =  "Site Instruction List";
+}
+<div>
+    <div class="row mb-2 mt-5">
+        <div class="col col-lg-6 col-md-6 col-sm-6 ">
+            <label id="ContractTitle" class="form-label">@ViewBag.Title</label>
+        </div>
+        <div class="col col-lg-6 col-md-6 col-sm-6 ">
+            <div class="row">
+            </div>
+            <div class="row d-flex ms-auto col-8 mt-1">
+                <div class="col col-md-3 col-sm-3 ">
+                    <form id="formPaging" asp-action="Index" method="get">
+                        <select id="pp" name="pp" class="form-select select-css">
+                            <option value="10">10</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                            <option value="1000">1000</option>
+                        </select>
+                    </form>
+
+                </div>
+                <div class="col col-md-8 col-sm-8">
+                    <form asp-action="Index" method="get">
+                        <div class="input-group">
+                            <input id="txtSearch" type="text" name="s" class="col-lg-4 col-sm-4  form-control" placeholder="Search" />
+                            <button id="btnSearch" type="submit" class="btn btn-sm-2 btn-primary"> Search</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <table id="tblMain" class="table table-responsive table-hover text-center">
+        <thead>
+            <tr class="table-active">
+                <th width="5%">Id</th>
+                <th width="30%">ProjectName</th>
+                <th width="15%">CM/PMI Number</th>
+                <th width="15%">Asec/PMI Number</th>
+                <th width="15%">Status</th>
+                <th width="10%">Date</th>
+                <th width="10%">Action</th>
+
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            @if (Model != null && Model.data != null)
+            {
+                @foreach (var item in Model.data)
+                {
+                    <tr>
+                        <td>@item.UserId</td>
+                        <td>@item.ProjectName</td>
+                        <td>@item.CMPMINumber</td>
+                        <td>@item.AsecPMINumber</td>
+                        <td>@item.Status</td>
+                        <td>@item.Date.ToString("MM/dd/yyyy")</td>
+                        <td>
+                            <div id="CrudIcon" class="mt-2 fa-xs fa-sm fa-lg">
+                                <a href='../SiteInstruction/Details?id=@item.CMSiteId'>
+                                    <i title="Details" class='far fa-file-alt'></i>
+                                </a>
+                                <a href='../SiteInstruction/Edit?id=@item.CMSiteId'>
+                                    <i title="Update" class='fa-sharp fa-solid fa-file-pen'></i>
+                                </a>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a href='../SiteInstruction/Delete?id=@item.CMSiteId'>
+                                        <i title="Delete" class='icon fa-regular fa-trash-can'></i>
+                                    </a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7">No Records</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="d-flex justify-content-center">
+        <ul class="pagination" id="pagination">
+        </ul>
+    </div>
+    <div>
+        @if (Model != null)
+        {
+            <nav>
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(Model.pageCurrent <= 10  ? "disabled" : "")">
+                        <a class="page-link" asp-route-p="@(Model.pageCurrent - 10)"> Previous</a>
+                    </li>
+                    <li class="page-item @(Model.pageCurrent <= 1 ? "disabled" : "")">
+                        <a class="page-link" asp-route-p="@(Model.pageCurrent - 1)">Previous</a>
+                    </li>
+
+                    <li class="page-item @(Model.pageCurrent == Model.numSize ? "active":Model.pageCurrent==0 ? "active" : "active")">
+                        <span class="page-link">@Model.pageCurrent</span>
+                    </li>
+
+                    <li class="page-item @(Model.pageCurrent >= Model.numSize ? "disabled": "")">
+                        <a class="page-link" asp-route-p="@(Model.pageCurrent + 1)">Next</a>
+                    </li>
+                    <li class="page-item @(Model.pageCurrent +9 >= Model.numSize ? "disabled" : "")">
+                        <a class="page-link" asp-route-p="@(Model.pageCurrent + 10)">Next >></a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    </div>
+    <div>
+        <div class="position-fixed bottom-0 end-0 m-4">
+            <a class="btn" asp-controller="SiteInstruction" asp-action="Create" title="Insert new Site">
+
+                <span id="InsertIcon" class="material-symbols-outlined opacity-50" style="font-size: 70px;">
+                    add_circle
+                </span>
+            </a>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    document.getElementById("pp").addEventListener("change", function(){
+        document.getElementById("formPaging").submit();
+    });
+</script>
+<script>
+    $(document).ready(function(){
+        var urlsite = '/SiteInstruction/GetData'
+        var connection = new signalR.HubConnectionBuilder()
+            .withUrl("/siteHub").build();
+        var name;
+        var currentPage = 1; // Initialize the current page
+        var checkSearch = false;
+        var pageSize = 10;
+        var isPaginating = false;
+        connection.start().then(function () {
+            connection.on("LoadSiteData", function () {
+                console.log("Successfully Connected");
+                loadData(currentPage);
+            });
+        }).catch(function (error) {
+            loadData(currentPage);
+            // This catch block will handle errors that occur during connection start.
+            console.error("Connection start failed:", error);
+
+        });
+
+        loadData(currentPage);
+        function updatePagination(currentPage, totalPages) {
+            var paginationHtml = '<ul class="pagination">';
+
+            // Add Previous links
+            paginationHtml += '<li class="page-item ' + (currentPage <= 10 ? " disabled" : "") + '">';
+            paginationHtml += '<a class="page-link" href="#" data-page="' + (currentPage - 10) + '">&lt;&lt; Previous</a>';
+            paginationHtml += '</li>';
+
+            paginationHtml += '<li class="page-item ' + (currentPage <= 1 ? " disabled" : "") + '">';
+            paginationHtml += '<a class="page-link" href="#" data-page="' + (currentPage - 1) + '">Previous</a>';
+            paginationHtml += '</li>';
+
+            // Add current page
+            paginationHtml += '<li class="page-item ' + (currentPage === totalPages ? "active" : "") + '">';
+            paginationHtml += '<span class="page-link">' + currentPage + '</span>';
+            paginationHtml += '</li>';
+
+            // Add Next links
+            paginationHtml += '<li class="page-item ' + (currentPage >= totalPages ? "disabled" : "") + '">';
+            paginationHtml += '<a class="page-link" href="#" data-page="' + (currentPage + 1) + '">Next</a>';
+            paginationHtml += '</li>';
+
+            paginationHtml += '<li class="page-item ' + (currentPage + 9 >= totalPages ? "disabled" : "") + '">';
+            paginationHtml += '<a class="page-link" href="#" data-page="' + (currentPage + 10) + '">Next >></a>';
+            paginationHtml += '</li>';
+            // Set the HTML
+            $('#pagination').html(paginationHtml);
+
+            // Handle click events on pagination links
+            $('#pagination').on('click', 'a.page-link', function (e) {
+                e.preventDefault();
+                var newPage = parseInt($(this).data('page'));
+                if (newPage !== currentPage) {
+                    currentPage = newPage;
+                    urlsite = '/SiteInstruction/Index'
+                    loadData(currentPage); // Call the loadData function when a page link is clicked
+                }
+            });
+        }
+        $(window).on("popstate", function (e) {
+            // Handle the back/forward button navigation
+            var state = e.originalEvent.state;
+            if (state) {
+                currentPage = state.page;
+                loadData(currentPage);
+            }
+        });
+        function loadData(currentPage) {
+            //alert("page" + page);
+            if (isPaginating) return; // Prevent multiple simultaneous pagination requests
+            isPaginating = true;
+            $.ajax({
+                url: urlsite,
+                method: "GET",
+                data: {
+                    pageCurrent: currentPage, // Pass the current page
+                    numSize: pageSize,
+                },
+                success: function (result) {
+                    console.log(result)
+                    if (checkSearch === true && result.data.length === 0) {
+                        alert("No Records Found");
+                        checkSearch = false;
+                        $('#tableBody').html('<tr><td colspan="7">No file match</td></tr>');
+                        urlsite = "/SiteInstruction/GetData";
+                        loadData(currentPage);
+                    }
+                    else {
+                        var pl = '';
+                        $('#tableBody').empty();
+
+                        $.each(result.data, (k, v) => {
+                            pl += `<tr>
+                    <td>${v.CMSiteId}</td>
+                    <td>${v.ProjectName}</td>
+                    <td>${v.CMPMINumber}</td>
+                    <td>${v.AsecPMINumber}</td>
+                    <td>${v.Status}</td>
+                    <td>${new Date(v.Date).toISOString().slice(0, 10)}</td>
+
+    @if (User.IsInRole("Admin") || User.IsInRole("Cost") || User.IsInRole("Manager") || User.IsInRole("Engineering"))
+    {
+                        <td>
+                                <div id="CrudIcon" class="mt-2 fa-xs fa-sm fa-lg">
+                                     <a href='../SiteInstruction/Details?id=${v.CMSiteId}'>
+                                                        <i title="Details" class='far fa-file-alt'></i>
+                                            </a>
+                                            <a href='../SiteInstruction/Edit?id=${v.CMSiteId}'>
+                                                <i title="Update" class='fa-sharp fa-solid fa-file-pen'></i>
+                                            </a>
+                @if (User.IsInRole("Admin"))
+                {
+                                                        <a href='../SiteInstruction/Delete?id=${v.CMSiteId}' onclick="return doClick();">
+                                                                <i title="Delete" class='icon fa-regular fa-trash-can'></i>
+                                                            </a>
+                }
+                        </div>
+                                </td>
+    }
+                </tr>`;
+                        });
+                        $('#tableBody').html(pl);
+                        isPaginating = false;
+                        updatePagination(result.pageCurrent, result.numSize);
+                    }
+                },
+                error: function (error) {
+                    isPaginating = false;
+                    alert("An error occurred while searching." + error);
+                }
+            });
+        }
+        $(document).on('click', 'a[href^="../SiteInstruction/Delete?id="]', function (e) {
+            return window.confirm('Are you sure you want to delete this file?');
+        });
+
+
+    });
+</script>
+
+

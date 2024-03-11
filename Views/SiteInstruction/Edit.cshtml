@@ -1,0 +1,316 @@
+﻿@model SiteInstruction
+@{
+    ViewData["Title"] = "Edit";
+}
+<div class="card-body mt-4">
+    <div class="card-header mb-2">
+        <div class="row">
+            <label id="ContractTitle" class="form-label">@ViewBag.Title</label>
+        </div>
+        <div class="rows col col-3">
+            <a class="btn btn-primary mb-1" asp-action="Index">Back to List</a>
+        </div>
+    </div>
+    <form asp-controller="SiteInstruction" asp-action="Update" method="post" enctype="multipart/form-data" autocomplete="off">
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-warning alert-dismissible text-center show" role="alert">
+                <strong>Error!</strong> @ViewBag.Error
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @Html.AntiForgeryToken()
+        <div class="form-group">
+            <div class="row">
+                <div class="col">
+                    <div class="col ">
+                        <div class="row mb-2">
+                            <div class="col-3">
+                                @Html.LabelFor(model =>model.Date)
+                                <input type="date" class="form-control" id="txtDob" asp-for="Date" disabled="@(Model?.Status=="Approved" || User.IsInRole("Engineering"))" />
+                                <input type="date" class="form-control" asp-for="Date" hidden />
+                            </div>
+                            <div class="col">
+                                @Html.LabelFor(model => model.Status)
+                                <select class="form-control" asp-for="Status" disabled="@(Model?.Status=="Approved")">
+                                    <option value="For Costing">For Costing</option>
+                                    <option value="For Return">For Return</option>
+                                    <option value="For Updating">For Updating</option>
+                                    <option value="For Reconciliation">For Reconciliation</option>
+                                    <option value="Reconciled">Reconciled</option>
+                                    <option value="Approved">Approved</option>
+                                    <option value="Not Approved">Not Approved</option>
+                                    <option value="Closed">Closed</option>
+                                </select>
+                                <input type="text" class="form-control" asp-for="Status" hidden />
+                            </div>
+                        </div>
+                        <div class="row justify-content-end text-center mt-1">
+                            <div class="col-4 ">
+                                <label>Additive:</label>
+                                <input asp-for="boolAdditive" type="checkbox" checked="@(Model?.Additive ==1 ? true: false)" disabled="@(Model?.Status == "Approved" || User.IsInRole("Engineering"))" />
+                                <input type="text" class="form-control" asp-for="Additive" hidden>
+                            </div>
+                            <div class="col-4">
+                                <label>Deduction:</label>
+                                <input asp-for="boolDeductive" type="checkbox" checked="@(Model?.Deductive ==1 ? true: false)" disabled="@(Model?.Status == "Approved" || User.IsInRole("Engineering"))" />
+                                <input type="text" class="form-control" asp-for="Deductive" hidden>
+                            </div>
+                        </div>
+                        @Html.LabelFor(model=>model.ProjectName)
+                        <input type="text" class="form-control" id="txtName" asp-for="ProjectName" disabled="@(Model?.Status=="Approved" || User.IsInRole("Cost")|| User.IsInRole("Engineering") ) " />
+                        <input type="text" class="form-control" asp-for="ProjectName" hidden />
+                    </div>
+
+                    <div class="col mt-2">
+                        @Html.LabelFor(model=>model.CMPMINumber)
+                        <input type="text" class="form-control" id="" asp-for="CMPMINumber" disabled="@(Model?.Status=="Approved" || User.IsInRole("Engineering"))">
+                        <input type="text" class="form-control" asp-for="CMPMINumber" hidden />
+                    </div>
+                    <div class="col mt-2">
+                        @Html.LabelFor(model=>model.AsecPMINumber)
+                        <input type="text" class="form-control" id="" asp-for="AsecPMINumber" disabled="@(Model?.Status=="Approved"|| User.IsInRole("Engineering"))">
+                        <input type="text" class="form-control" asp-for="AsecPMINumber" hidden />
+                    </div>
+                    <div class="col mt-2">
+                        <div class="row">
+                            <label>
+                                Remarks(<i>Cost</i>)<a href="#" data-bs-toggle="modal" data-bs-target="#ModalCostRemarks">
+                                    <i class="fa-solid fa-file-circle-exclamation"></i>
+                                </a>
+                            </label>
+                        </div>
+                        <textarea class="form-control" rows="3" asp-for="Remarks" required disabled="@(Model?.Status=="Approved"|| User.IsInRole("Engineering"))"></textarea>
+                        <textarea class="form-control" rows="3" asp-for="Remarks" hidden></textarea>
+                    </div>
+                    <div class="col mt-2">
+                        <div class="row">
+                            <label>
+                                Remarks(<i>Engineering</i>)<a href="#" data-bs-toggle="modal" data-bs-target="#ModalRemarks">
+                                    <i class="fa-solid fa-file-circle-exclamation"></i>
+                                </a>
+                            </label>
+                        </div>
+                        <textarea class="form-control" rows="3" asp-for="EngRemarks" required disabled="@(Model?.Status=="Approved"|| (User.IsInRole("Cost")))"></textarea>
+                        <textarea class="form-control" rows="3" asp-for="EngRemarks" hidden></textarea>
+                    </div>
+                </div>
+                <div class="col">
+                    @if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Engineering") || User.IsInRole("Cost"))
+                    {
+                        if (Model?.Status != "Open")
+                        {
+                            <div class="row mb-2 @(User.IsInRole("Cost") && !(Model.Amount.HasValue) ? "hidden": "")">
+                                <div class=" col col-8 custom-file ">
+                                    @Html.LabelFor(model=>model.Amount)
+                                    <input type="number" class="form-control" asp-for="Amount" placeholder="Enter Amount" disabled="@(Model?.Status=="Approved" || User.IsInRole("Cost") || (Model.Completion.HasValue && Model.EquivAmount.HasValue))">
+                                    <input type="number" id="txtAmount" class="form-control" asp-for="Amount" hidden />
+                                </div>
+                                <div class="col col-4 align-self-end">
+                                    <a href="#" data-bs-toggle="modal" data-bs-target="#myModal">
+                                        <span class="material-symbols-outlined">
+                                            request_quote
+                                        </span>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="row @((User.IsInRole("Engineering")  && Model.Completion.HasValue) ||  (Model.Amount >0 && User.IsInRole("Cost"))? "": "hidden" )">
+                                <div class=" col col-5 custom-file mb-2">
+                                    <label asp-for="Completion">Total Completion (%)</label>
+                                    <input id="txtCompletion" type="number" asp-for="Completion" disabled="@(User.IsInRole("Engineering"))" class="form-control" placeholder="Enter %">
+                                    <input type="number" asp-for="Completion" class="form-control" hidden>
+                                </div>
+                                <div class=" col col-4 custom-file mb-2">
+                                    <label asp-for="EquivAmount">Equiv. Amount </label>
+                                    <input id="txtEquiv" type="text" asp-for="EquivAmount" disabled="@(User.IsInRole("Engineering"))" class="form-control">
+                                    <input type="text" asp-for="EquivAmount" class="form-control" hidden>
+                                </div>
+                            </div>
+                            <div class="row mb-3 @((Model?.Status=="Approved" && Model.Amount>0 && User.IsInRole("Cost")) || ( Model.Amount >0 && Model.BilledCompletion.HasValue) ? "":"hidden")">
+                                <div class=" col col-5 custom-file mb-2">
+                                    <label asp-for="BilledCompletion">Billed Completion(%)</label>
+                                    <input id="txtBilledComp" type="number" asp-for="BilledCompletion" required="@(Model?.Status=="Approved")" class="form-control" placeholder="Enter %" disabled="@(User.IsInRole("Engineering") && Model.BilledCompletion.HasValue)">
+                                    <input type="number" asp-for="BilledCompletion" class="form-control" hidden>
+                                </div>
+                                <div class=" col col-4 custom-file mb-2">
+                                    <label asp-for="EquivBilled">Equiv. Billed Amount </label>
+                                    <input id="txtBilledEquiv" type="text" asp-for="EquivBilled" required="@(Model?.Status=="Approved")" class="form-control" disabled="@(User.IsInRole("Engineering") && Model.BilledCompletion.HasValue)">
+                                    <input type="number" asp-for="EquivBilled" class="form-control" hidden>
+                                </div>
+                            </div>
+                            <div class="col-8 mb-2 @((Model.Status=="Reconciled" || Model.Status=="Approved" && User.IsInRole("Cost"))|| (Model?.PONumber!=null && User.IsInRole("Engineering")) ? "" : "hidden")">
+                                @Html.LabelFor(model=>model.PONumber)
+                                <input type="text" class="form-control" asp-for="PONumber" required="@(Model?.Status=="Reconciled")" placeholder="PO Number" disabled="@(Model?.Status=="Approved" || User.IsInRole("Engineering"))">
+                                <input type="text" class="form-control" asp-for="PONumber" hidden>
+                            </div>
+                        }
+                    }
+                    <input type="text" class="form-control" id="" asp-for="CMSiteId" hidden>
+                    <input type="text" asp-for="UserId" hidden />
+                    <div class="custom-file">
+                        <div class="form-group col-8">
+                            <label>Select Files:</label>
+                            <input asp-for="Files" class="form-control" id="file" multiple onchange="GetFileSizeNameAndType()" />
+                            <div class="mt-2">
+                            </div>
+                        </div>
+                        <div class="card">
+                            <b>@(User.IsInRole("Cost") || User.IsInRole("Admin") ? "Cost" : "Engineering")</b>
+                            <ul>
+                                @if (Model == null)
+                                {
+                                    <p>No files Available</p>
+                                }
+                                @if (Model != null)
+                                {
+                                    @if (Model.FileUpload == null || Model.FileUpload.Count == 0)
+                                    {
+                                        <p>No files available</p>
+                                    }
+                                    else
+                                        @foreach (var file in Model.FileUpload)
+                                        {
+                                            <li>
+                                                @file.FileName
+                                                <a asp-action="DownloadFile" asp-route-fileId="@file.FileId">Download</a>
+                                                <a asp-action="DeleteFile" asp-route-fileId="@file.FileId" asp-route-CMSiteId="@Model?.CMSiteId" data-confirm="Are you sure to delete this file?">Delete</a>
+                                            </li>
+                                        }
+                                }
+                            </ul>
+                        </div>
+                        <div class="card mt-2">
+                            <b>@(User.IsInRole("Cost") || User.IsInRole("Admin") ? "Engineering" : "Cost")</b>
+                            <ul>
+                                @if (Model == null)
+                                {
+                                    <p>No files Available</p>
+                                }
+                                @if (Model != null)
+                                {
+                                    @if (Model.FileUpload2 == null || Model.FileUpload2.Count == 0)
+                                    {
+                                        <p>No files available</p>
+                                    }
+                                    else
+                                        @foreach (var file in Model.FileUpload2)
+                                        {
+                                            <li>
+                                                @file.FileName
+                                                <a asp-action="DownloadFile" asp-route-fileId="@file.FileId">Download</a>
+                                                <a asp-action="DeleteFile" asp-route-fileId="@file.FileId" asp-route-CMSiteId="@Model?.CMSiteId" data-confirm="Are you sure to delete this file?">Delete</a>
+                                            </li>
+                                        }
+                                }
+                            </ul>
+                        </div>
+                        <div id="fp"></div>
+                        <p>
+                            <div id="divTotalSize"></div>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex flex-row bd-highlight mt-3">
+                <div>
+                    @if (User.IsInRole("Admin") || User.IsInRole("Cost") || User.IsInRole("Superindent/Manager") || User.IsInRole("Engineering"))
+                    {
+                        <input type="submit" id="btnSave" class="btn btn-primary mb-1" value="Save" data-confirm="Confirm update entry?" />
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a class="btn btn-primary mb-1" asp-action="Delete" asp-route-id="@Model?.CMSiteId" data-confirm="Are you sure to delete this Site Instruction?">Delete</a>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal" id="myModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Amount Costing History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-active text-center">
+                    <thead>
+                        <tr>
+                            <th scope="col">Id</th>
+                            <th scope="col">userId</th>
+                            <th scope="col">CMSiteId</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.AmountList != null)
+                        {
+                            @foreach (var amount in Model.AmountList)
+                            {
+                                <tr>
+                                    <td>@amount.Id</td>
+                                    <td>@amount.userId</td>
+                                    <td>@amount.CMSiteId</td>
+                                    <td>@(string.Format("{0:c2}", amount.Amount))</td>
+                                    <td>@amount.date</td>
+                                </tr>
+                            }    
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5">No Costing Records!</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                 <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="ModalCostRemarks" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-scrollable" style="width:80%;" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Remarks</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <textarea class="form-control" asp-for="Remarks" rows="9">
+
+                </textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="ModalRemarks" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-scrollable style=" width:80%;"" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Remarks</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <textarea class="form-control" asp-for="EngRemarks" rows="9">
+
+                </textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                @* <button type="button" class="btn btn-primary">Save changes</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@2.11.6/dist/umd/popper.min.js"></script>
+

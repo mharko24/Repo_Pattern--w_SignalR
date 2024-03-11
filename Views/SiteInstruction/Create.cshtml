@@ -1,0 +1,153 @@
+﻿@model SiteInstruction
+@{
+    ViewBag.Title = "Add Site Instruction";
+}
+<section>
+    <div class="card mt-4">
+        <div class="card-header">
+            <div class="d-flex mt-2">
+                <div class="me-auto">
+                    <label id="ContractTitle" class="form-label">@ViewBag.Title</label>
+                </div>
+                <div class="ms-auto">
+                    <a id="btnback" class="justify-content-end" asp-action="Index" data-confirm="Disregard Entry?">
+                        <i class="fa-solid fa-circle-left" title="Back"></i>
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+        <div class="card-body">
+            <form asp-controller="SiteInstruction" asp-action="Create" method="post" enctype="multipart/form-data" autocomplete="off">
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-warning alert-dismissible text-center show" role="alert">
+                        <strong>Error!</strong> @ViewBag.Error
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col">
+                            <div class="col ">
+                                <div class="row mb-2">
+                                    <div class="col-4">
+                                        <label class="form-label">Date:</label>
+                                        <input type="date" id="txtDate" class="form-control" asp-for="Date" required />
+                                        <span asp-validation-for="Date" class="alert-danger"></span>
+                                    </div>
+                                    <div class="col">
+                                        <label class="form-label">Status:</label>
+                                        <select class="form-control" asp-for="Status" id="txtStatus" disabled>
+                                            <option>Open </option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row justify-content-end text-center">
+                                    <div class="col-4 ">
+                                        <label class="form-label">Additive:</label>
+                                        <input asp-for="boolAdditive" type="checkbox" name="boolAdditive" />
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="form-label">Deduction:</label>
+                                        <input asp-for="boolDeductive" type="checkbox" name="boolDeductive" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="form-label">ProjectName:</label>
+                                    @if (User.IsInRole("Cost"))
+                                    {
+                                        <input type="text" class="form-control" asp-for="ProjectName" disabled="@(User.IsInRole("Cost"))">
+                                    }
+                                    else
+                                    {
+                                        <select class="form-select" asp-for="ProjectName">
+                                            @if (Model != null && Model.ProjectList != null)
+                                            {
+                                                <option value="">Select Project</option>
+                                                @foreach (var item in Model.ProjectList)
+                                                {
+                                                    <option value="@item.ProjectName">@item.ProjectName</option>
+                                                }
+                                            }
+                                        </select>
+                                    }
+                                    <input type="text" class="form-control" asp-for="ProjectName" hidden>
+                                </div>
+
+                            </div>
+
+                            <div class="col mt-2">
+                                <label class="form-label">CM PMI/SI #:</label>
+                                <input type="text" class="form-control" id="txtPMI" asp-for="CMPMINumber" placeholder="CM/PMI Number" required>
+                                <span asp-validation-for="CMPMINumber" class="alert-danger"></span>
+                            </div>
+                            <div class="col mt-2">
+                                <label class="form-label">ASEC PMI #:</label>
+                                <input type="text" class="form-control" id="txtAsec" asp-for="AsecPMINumber" placeholder="ASEC PMI Number" required>
+                                <span asp-validation-for="AsecPMINumber" class="alert-danger"></span>
+                            </div>
+
+
+                            <div class="col mt-2">
+                                <label class="form-label">Remarks:</label>
+                                <textarea class="form-control" id="txtRemarks" rows="3" asp-for="Remarks" required></textarea>
+                                <span asp-validation-for="Remarks" class="alert-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="custom-file col-8">
+
+                                <div class="form-group">
+                                    <label class="form-label">Select a file to upload:</label>
+                                    <input asp-for="Files" class="form-control" id="file" multiple onchange="GetFileSizeNameAndType()" />
+                                    @*<span asp-validation-for="Files" class="text-danger"></span>*@
+                                </div>
+                                <div id="fp"></div>
+                                <p>
+                                    <div id="divTotalSize"></div>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex flex-row-reverse bd-highlight mb-1">
+                    <div>
+                        <input id="btnSave" type="submit" class="btn btn-primary float-right" value="Submit" data-confirm="Are you sure you want to submit this entry?" />
+                        <input type="reset" class="btn btn-default float-right" />
+                    </div>
+
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <table id="tblMain" class="table table-responsive table-hover text-center">
+        <thead>
+            <tr class="table-active">
+                <th scope="col">ProjectName</th>
+                <th scope="col">CM/PMI Number</th>
+                <th scope="col">Asec/PMI Number</th>
+                <th scope="col">Status</th>
+                <th scope="col">Date</th>
+
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+        </tbody>
+        <tfoot></tfoot>
+    </table>
+    <div class="d-flex justify-content-center">
+        <ul class="pagination" id="pagination">
+        </ul>
+    </div>
+
+</section>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+
+

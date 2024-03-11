@@ -1,0 +1,131 @@
+﻿@model PaginatedResult<PotentialClaim>
+@{
+    ViewBag.Title = "Potential Claim List";
+}
+<div>
+    <div class="row mb-2 mt-5">
+        <div class="col col-lg-6 col-md-6 col-sm-6 ">
+            <label id="ContractTitle" class="form-label">@ViewBag.Title</label>
+        </div>
+        <div class="col col-lg-6 col-md-6 col-sm-6 ">
+            <div class="row">
+            </div>
+            <div class="row d-flex ms-auto col-8 mt-1">
+                <div class="col col-md-3 col-sm-3 ">
+                    <form id="formPaging" asp-action="Index" method="get">
+                        <select id="pp" name="pp" class="form-select select-css">
+                            <option value="10">10</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                            <option value="1000">1000</option>
+                        </select>
+                    </form>
+
+                </div>
+                <div class="col col-md-8 col-sm-8">
+                    <form asp-action="Index" method="get">
+                        <div class="input-group">
+                            <input id="txtSearch" type="text" name="s" class="col-lg-4 col-sm-4  form-control" placeholder="Search" />
+                            <button id="btnSearch" type="submit" class="btn btn-sm-2 btn-primary"> Search</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <table id="tblMain" class="table table-responsive table-hover text-center">
+        <thead>
+            <tr class="table-active">
+                <th width="5%">Id</th>
+                <th width="30%">ProjectName</th>
+                <th width="15%">CM/PMI Number</th>
+                <th width="15%">Asec/PMI Number</th>
+                <th width="15%">Status</th>
+                <th width="10%">Date</th>
+                <th width="10%">Action</th>
+
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            @if (Model != null && Model.data != null)
+            {
+                @foreach (var item in Model.data)
+                {
+                    <tr>
+                        <td>@item.UserId</td>
+                        <td>@item.ProjectName</td>
+                        <td>@item.CVINumber</td>
+                        <td>@item.AsecPMINumber</td>
+                        <td>@item.Status</td>
+                        <td>@item.Date.ToString("MM/dd/yyyy")</td>
+                        <td>
+                            <div id="CrudIcon" class="mt-2 fa-xs fa-sm fa-lg">
+                                <a href='../SiteInstruction/Details?id=@item.PotId'>
+                                    <i title="Details" class='far fa-file-alt'></i>
+                                </a>
+                                <a href='../SiteInstruction/Edit?id=@item.PotId'>
+                                    <i title="Update" class='fa-sharp fa-solid fa-file-pen'></i>
+                                </a>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a href='../SiteInstruction/Delete?id=@item.PotId'>
+                                        <i title="Delete" class='icon fa-regular fa-trash-can'></i>
+                                    </a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <p>No Records</p>
+            }
+        </tbody>
+    </table>
+    <div>
+        @if (Model != null)
+        {
+            <nav>
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(Model.pageCurrent <= 10  ? "disabled" : "")">
+                        <a class="page-link" asp-route-p="@(Model.pageCurrent - 10)"> Previous</a>
+                    </li>
+                    <li class="page-item @(Model.pageCurrent <= 1 ? "disabled" : "")">
+                        <a class="page-link" asp-route-p="@(Model.pageCurrent - 1)">Previous</a>
+                    </li>
+
+                    <li class="page-item @(Model.pageCurrent == Model.numSize ? "active":Model.pageCurrent==0 ? "active" : "active")">
+                        <span class="page-link">@Model.pageCurrent</span>
+                    </li>
+
+                    <li class="page-item @(Model.pageCurrent >= Model.numSize ? "disabled": "")">
+                        <a class="page-link" asp-route-p="@(Model.pageCurrent + 1)">Next</a>
+                    </li>
+                    <li class="page-item @(Model.pageCurrent +9 >= Model.numSize ? "disabled" : "")">
+                        <a class="page-link" asp-route-p="@(Model.pageCurrent + 10)">Next >></a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    </div>
+    <div>
+        <div class="position-fixed bottom-0 end-0 m-4">
+            <a class="btn" asp-controller="SiteInstruction" asp-action="Create" title="Insert new Site">
+
+                <span id="InsertIcon" class="material-symbols-outlined opacity-50" style="font-size: 70px;">
+                    add_circle
+                </span>
+            </a>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    document.getElementById("pp").addEventListener("change", function () {
+        document.getElementById("formPaging").submit();
+    });
+</script>
+
+
+

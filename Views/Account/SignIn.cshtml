@@ -1,0 +1,81 @@
+﻿@model UserApp
+@{
+    Layout = null;
+    ViewData["Title"] = "Sign-In";
+}
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+@*    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">*@
+</head>
+<body>
+    <br />
+   <div class="container">
+        <div class="mx-auto col-6 col-md-6 col-lg-4 mt-5">
+@*            <h5 class="alert-danger"> @ViewBag.login</h5>*@
+            @if (ViewBag.login != null)
+            {
+                <div class="alert alert-warning alert-dismissible text-center show" role="alert">
+                    <strong>Error!</strong> @ViewBag.login
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            <form class="row" asp-action="SignIn" asp-controller="Account" method="post">
+        
+                <div class="col-12 border border-light" >
+                   @* <h5 class="alert-danger"> @ViewBag.login</h5>*@
+                    <div>
+                        <h4>Please Login</h4>
+                    </div>
+                    <div class="form-outline ">
+                        <label asp-for="Username" class="form-label">Username</label>
+                        <input asp-for="Username" type="text" name="username" class="form-control" placeholder="Username" autofocus/>
+                        <span asp-validation-for="Username"></span>
+                    </div>
+
+                    <!-- Password input -->
+                    <div class="form-outline mt-4">
+                        <label asp-for="Password" class="form-label">Password</label>
+                        <input asp-for="Password" type="password" name="password" class="form-control"  placeholder="Password" />
+                        <span asp-validation-for="Password"></span>
+                    </div>
+
+                    <!-- 2 column grid layout for inline styling -->
+                    <div class="row mt-2">
+                        <div class="col d-flex justify-content-center">
+                            <!-- Checkbox -->
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" />
+                                <label class="form-check-label"> Remember me </label>
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <!-- Simple link -->
+                            @*<a href="../Account/CreateAccount">Create Account</a>*@
+                        </div>
+                    </div>
+
+                    <!-- Submit button -->
+                    <div class="d-grid gap-2 mt-4" align="center">
+                        <button type="submit" class="btn btn-lg btn-primary" value="Sign In">Sign in</button>
+                    </div>
+                   
+
+
+                </div>
+                <!-- Email input -->
+
+            </form>
+       </div>
+        
+   </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.min.js"></script>
+  
+    
+</body>
+</html>

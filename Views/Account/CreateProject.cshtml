@@ -1,0 +1,67 @@
+﻿@model ProjectDetail
+@{
+}
+<link href="~/css/createaccount.css" rel="stylesheet" />
+<div id="body-shadow" class="container mt-5">
+    <div class="row">
+        <div class="mx-auto col-8 col-md-8 col-lg-8 ">
+            @if (ViewBag.success != null)
+            {
+                <div class="alert alert-warning alert-dismissible text-center show" role="alert">
+                     @ViewBag.success
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            <div class="CreateProject card">
+                <form asp-action="AddProject" asp-controller="Account" method="post" enctype="multipart/form-data" autocomplete="off">
+                    <div class="mx-auto col-12 p-5">
+                        <h3><b>Project Registration</b></h3>
+                        <div class="col col-4 mb-3 mt-3 ">
+                            <label asp-for="ProjectCode" class="form-label">Project Code</label>
+                            <input asp-for="ProjectCode" type="text" class="form-control" placeholder="Project Code" />
+                            <span asp-validation-for="ProjectCode" class="alert-danger"></span>
+                        </div>
+                        <div class="row">
+                            <div class="col col-7 form-outline mb-3">
+                                <label asp-for="PONumber" class="form-label">PO Number</label>
+                                <input asp-for="PONumber" type="text" class="form-control" placeholder="PO Number" />
+                                <span asp-validation-for="PONumber" class="alert-danger"></span>
+                            </div>
+                            <div class="col col-5  form-outline mb-3">
+                                <label asp-for="OrigContractAmount" class="form-label">Contract Value</label>
+                                <input asp-for="OrigContractAmount" type="number" class="form-control" placeholder="Contract Value" />
+                                <span asp-validation-for="OrigContractAmount" ></span>
+                            </div>
+                        </div>
+                        <div class="form-outline mb-3">
+                            <label asp-for="ProjectName" class="form-label">Project Name</label>
+                            <input asp-for="ProjectName" type="text" class="form-control" placeholder="Project Name" />
+                            <span asp-validation-for="ProjectName" class="alert-danger"></span>
+                        </div>
+                        <div class="form-outline mb-3">
+                            <label asp-for="Address" class="form-label"> Address</label>
+                            <textarea asp-for="Address" type="text" rows="3" class="form-control" placeholder="Address"></textarea>
+                            <span asp-validation-for="Address" class="alert-danger"></span>
+                        </div>
+                        <div class="col col-3 form-outline mb-3">
+                            <label asp-for="Active" class="form-label"> Active</label>
+                            @*<input asp-for="Active" type="checkbox" class="form-control" placeholder="PONumber" />*@
+                            <select asp-for="Active" class="form-select">
+                                <option value="0">Inactive</option>
+                                <option value="1">Active</option>
+                            </select>
+                            <span asp-validation-for="Active" class="alert-danger"></span>
+                        </div>
+                        <div class="d-grid gap-2 mb-5 mt-5" align="center">
+                            <button id="btnproject" type="submit" class="btn btn-lg" value="submit">Create Project</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    
